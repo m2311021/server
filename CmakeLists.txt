@@ -1,0 +1,47 @@
+cmake_minimum_required(VERSION 3.28)
+project(Api_Tutorial)
+
+set(CMAKE_CXX_STANDARD 23)
+
+configure_file(${CMAKE_SOURCE_DIR}/form.html ${CMAKE_BINARY_DIR}/form.html COPYONLY)
+
+# Add Boost and Drogon libraries
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+
+find_package(Boost 1.86.0 REQUIRED)
+find_package(Drogon 1.9.7 REQUIRED)
+
+# Добавляем include директории
+include_directories(
+    include
+    include/api
+    include/api/apis
+    ${Boost_INCLUDE_DIRS}
+    ${Drogon_INCLUDE_DIRS}
+)
+
+# Создаем библиотеку core, содержащую модули tools и user
+add_library(core STATIC)
+target_sources(core
+    PUBLIC
+    FILE_SET CXX_MODULES FILES
+        include/api/data_types/tools.ixx
+        include/api/api.cppm
+        include/api/data_types/user.ixx
+)
+
+# Создаем исполняемый файл Api_Tutorial и подключаем библиотеку core
+add_executable(${PROJECT_NAME} 
+    main.cpp
+    include/operatorOverride.hpp
+    include/api/apis/storage.hpp
+    include/api/apis/userController.hpp
+    src/userController.cpp
+    src/operatorOverride.cpp
+    src/storage.cpp
+)
+
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} PUBLIC ${DROGON_LIBRARIES}   PRIVATE core)
+# Подключаем Boost и Drogon к библиотеке core, если требуется
